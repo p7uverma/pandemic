@@ -3,6 +3,7 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   const VideoPlayerScreen({super.key});
@@ -26,43 +27,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Video Player App'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            TextField(
-              controller: _urlController,
-              decoration: InputDecoration(
-                labelText: 'Video URL',
-                errorText: _isValidUrl ? null : 'Invalid URL',
+    return _controller!.value.isInitialized
+        ? AspectRatio(
+            aspectRatio: _controller!.value.aspectRatio,
+            child: Chewie(
+              controller: ChewieController(
+                videoPlayerController: _controller!,
+                showControls: true,
+                autoPlay: true,
+                allowMuting: true,
+                looping: true,
+                aspectRatio: _controller!.value.aspectRatio,
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                _playVideo();
-              },
-              child: const Text('Play Video'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _downloadVideo();
-              },
-              child: Text('Download Video'),
-            ),
-            const SizedBox(height: 20),
-            _controller!.value.isInitialized
-                ? AspectRatio(
-                    aspectRatio: _controller!.value.aspectRatio,
-                    child: VideoPlayer(_controller!),
-                  )
-                : Container(),
-          ],
-        ),
-      ),
-    );
+          )
+        : Container();
   }
 
   void _downloadVideo() async {

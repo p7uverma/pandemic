@@ -40,6 +40,10 @@ dependencies:
   flutter_downloader: ^1.11.2
   permission_handler: ^11.0.0
   path_provider: ^2.1.1
+  flutter_sharing_intent: ^1.1.0
+  receive_sharing_intent: ^1.4.5
+  chewie: ^1.7.1
+  flutter_riverpod: ^2.4.1
 
 dev_dependencies:
   flutter_test:

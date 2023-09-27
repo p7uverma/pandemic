@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:pandemic/screens/video_download.dart';
-import 'package:pandemic/widegts/video_player.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pandemic/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FlutterDownloader.initialize(
     debug: true, // Set to false in production
   );
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       ),
       darkTheme: ThemeData.dark(useMaterial3: true),
       themeMode: ThemeMode.system,
-      home: const VideoPlayerScreen(),
+      home: const HomeView(),
     );
   }
 }
