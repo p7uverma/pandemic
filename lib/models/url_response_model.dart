@@ -6,12 +6,14 @@ class UrlResponseModel {
   final String error;
   final String type;
   final String code;
+  final String service;
   UrlResponseModel({
     required this.message,
     required this.id,
     required this.error,
     required this.type,
     required this.code,
+    required this.service,
   });
 
   UrlResponseModel copyWith({
@@ -20,6 +22,7 @@ class UrlResponseModel {
     String? error,
     String? type,
     String? code,
+    String? service,
   }) {
     return UrlResponseModel(
       message: message ?? this.message,
@@ -27,6 +30,7 @@ class UrlResponseModel {
       error: error ?? this.error,
       type: type ?? this.type,
       code: code ?? this.code,
+      service: service ?? this.service,
     );
   }
 
@@ -38,6 +42,7 @@ class UrlResponseModel {
     result.addAll({'error': error});
     result.addAll({'type': type});
     result.addAll({'code': code});
+    result.addAll({'service': service});
 
     return result;
   }
@@ -49,6 +54,7 @@ class UrlResponseModel {
       error: map['error'] ?? '',
       type: map['type'] ?? '',
       code: map['code'] ?? '',
+      service: map['service'] ?? '',
     );
   }
 
@@ -59,7 +65,7 @@ class UrlResponseModel {
 
   @override
   String toString() {
-    return 'UrlResponseModel(message: $message, id: $id, error: $error, type: $type, code: $code)';
+    return 'UrlResponseModel(message: $message, id: $id, error: $error, type: $type, code: $code, service: $service)';
   }
 
   @override
@@ -71,7 +77,8 @@ class UrlResponseModel {
         other.id == id &&
         other.error == error &&
         other.type == type &&
-        other.code == code;
+        other.code == code &&
+        other.service == service;
   }
 
   @override
@@ -80,6 +87,7 @@ class UrlResponseModel {
         id.hashCode ^
         error.hashCode ^
         type.hashCode ^
-        code.hashCode;
+        code.hashCode ^
+        service.hashCode;
   }
 }

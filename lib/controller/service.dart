@@ -1,81 +1,111 @@
+import 'dart:developer';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pandemic/core/constants.dart';
-import 'package:pandemic/core/utils.dart';
-import 'package:pandemic/models/url_response_model.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:tier/core/constants.dart';
+import 'package:tier/models/url_response_model.dart';
 
-final serviceProvider = StateNotifierProvider<ServiceController, bool>((ref) {
-  return ServiceController();
-});
+final serviceProvider = StateNotifierProvider<ServiceController, bool>(
+  (ref) => ServiceController(ref: ref),
+);
 
-final urlStringProvider =
-    Provider((ref) => ref.watch(serviceProvider.notifier).vidUrl);
+final urlResponseProvider = StateProvider<UrlResponseModel?>(
+  (ref) => null, // Initialize with null or a default value
+);
 
 class ServiceController extends StateNotifier<bool> {
-  ServiceController() : super(false);
+  final Ref _ref;
+  ServiceController({
+    required Ref ref,
+  })  : _ref = ref,
+        super(false);
 
-  String vidUrl = "";
+  UrlResponseModel responseModel = UrlResponseModel(
+    message: '',
+    id: 0,
+    error: '',
+    type: '',
+    code: '',
+    service: '',
+  );
 
-  Future<UrlResponseModel> fetchUrl(String rawUrl) async {
-    state = true;
-    final res = await http.get(
-      Uri.parse("${Constants.apiUrl}/reel/$rawUrl"),
-    );
-    state = false;
-    hideKeyboard();
+  Future<void> fetchUrl(String rawUrl) async {
+    try {
+      state = true;
 
-    // vidUrl = UrlResponseModel.fromJson(res.body).message;
-    return UrlResponseModel.fromJson(res.body);
+      final apiUrl = rawUrl.contains('instagram.com')
+          ? "${Constants.apiUrl}/reel/$rawUrl"
+          : "${Constants.apiUrl}/twitter/$rawUrl";
+
+      final response = await http.get(Uri.parse(apiUrl));
+      state = false;
+
+      responseModel = UrlResponseModel.fromJson(response.body);
+
+      // return responseModel;
+      _ref.watch(urlResponseProvider.notifier).update((state) => responseModel);
+    } catch (error) {
+      debugPrint('Error fetching URL: $error');
+      state = false;
+      final errorResponseModel = UrlResponseModel(
+        message: '',
+        id: 0,
+        error: 'An error occurred while fetching the URL.',
+        type: '', // Fix the 'type' value as needed
+        code: '',
+        service: '',
+      );
+
+      // Update the urlResponseProvider with the error data
+      _ref
+          .watch(urlResponseProvider.notifier)
+          .update((state) => errorResponseModel);
+    }
   }
 
   Future<void> downloadVideo({
     required BuildContext context,
     required String url,
   }) async {
-    if (!url.contains('instagram.com')) {
-      showSnackBar(context, "Invaild Url (Should be from Instagram)");
-      return;
-    }
-    final url_model = await fetchUrl(url);
-    vidUrl = url_model.message;
-    return;
+    if (Uri.parse(url).isAbsolute) {
+      final status = await Permission.storage.request();
 
-    if (Uri.parse(url_model.message).isAbsolute) {
-      // final status = await FlutterDownloader.initialize();
-      // if (status == DownloadTaskStatus.undefined) {
-      //   print('Could not initialize Flutter Downloader');
-      //   return;
-      // }
+      if (status.isGranted) {
+        try {
+          final externalDir = await getExternalStorageDirectory();
+          if (externalDir != null) {
+            final downloadDir = "${externalDir.path}/Downloads";
+            final savedDir = Directory(downloadDir);
+            bool hasExisted = await savedDir.exists();
+            if (!hasExisted) {
+              savedDir.create();
+            }
 
-      final appDocumentsDirectory = await getApplicationDocumentsDirectory();
-      final savedDir = appDocumentsDirectory.path;
-
-      final taskId = await FlutterDownloader.enqueue(
-        url: url_model.message,
-        savedDir: savedDir,
-        showNotification: true,
-        openFileFromNotification: true,
-        fileName:
-            '${url_model.id}/${url_model.message[60]}', // Specify the desired file name
-        allowCellular: true,
-        saveInPublicStorage: true,
-      );
-
-      FlutterDownloader.registerCallback((id, status, progress) {
-        if (status == DownloadTaskStatus.failed.index) {
-          print('Download $id failed');
-          // You can display an error message to the user here
-        } else if (status == DownloadTaskStatus.complete.index) {
-          print('Download $id complete');
-          // Handle the completed download here if needed
+            final taskId = await FlutterDownloader.enqueue(
+              url: url,
+              savedDir: downloadDir,
+              fileName: DateTime.now().toString().trim().replaceAll(' ', '-'),
+              showNotification: true,
+              openFileFromNotification: true,
+            );
+            debugPrint('Download started with ID: $taskId');
+          } else {
+            debugPrint("Failed to get external storage directory.");
+          }
+        } catch (e) {
+          debugPrint("Error downloading file: $e");
         }
-      });
-
-      // Handle the taskId if needed
-      print('Task ID: $taskId');
-    } else {}
+      } else {
+        debugPrint("Permission denied for storage access");
+      }
+    } else {
+      debugPrint('Invalid URL: $url');
+      // Handle invalid URL as needed
+    }
   }
 }

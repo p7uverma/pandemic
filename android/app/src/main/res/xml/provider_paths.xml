@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <!-- Define the directory where downloaded files will be stored. -->
-    <external-path
-        name="download"
-        path="downloads/"/>
-</paths>

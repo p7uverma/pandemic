@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pandemic/screens/home_screen.dart';
+import 'package:tier/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Pandemic',
+      title: 'Tier',
       theme: ThemeData(
         useMaterial3: true,
       ),
